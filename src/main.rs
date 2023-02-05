@@ -22,10 +22,19 @@ fn start() {
         api_key: std::env::var("ENVTAPIKEY").unwrap(),
         secret_key: std::env::var("ENVSECRET").unwrap(),
     };
-
+    let sign_query = "fromCurrency=".to_string()
+        + &my_order.from_currency
+        + "&toCurrency="
+        + &my_order.to_currency
+        + "&fromQty="
+        + &my_order.from_qty.to_string()
+        + "&toAddress="
+        + &my_order.to_address
+        + "&type="
+        + &my_order.conversation_type;
     let resp = ureq::post("https://fixedfloat.com/api/v1/createOrder")
         .set("X-API-KEY", &auth.api_key)
-        .set("X-API-SIGN", &Auth::x_api_sign(&mut auth, my_order.clone()))
+        .set("X-API-SIGN", &Auth::x_api_sign(&mut auth, sign_query))
         .send_form(&[
             ("fromCurrency", &my_order.from_currency),
             ("toCurrency", &my_order.to_currency),

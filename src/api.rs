@@ -37,7 +37,6 @@ struct SetEmergency {
     address: String,
 }
 
-#[derive(Clone)]
 pub struct CreateOrder {
     pub from_currency: String,
     pub to_currency: String,
