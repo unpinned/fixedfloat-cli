@@ -1,8 +1,14 @@
+mod api;
+mod auth;
+
+use dotenvy::dotenv;
 use hmac::{Hmac, Mac};
 use qrcode::{render::unicode, QrCode};
 use serde_json::Value;
 use sha2::Sha256;
 use std::fmt::Write;
+
+use crate::auth::Auth;
 
 type HmacSha256 = Hmac<Sha256>;
 
@@ -19,7 +25,7 @@ fn start() {
         from_currency: "BTCLN",
         to_currency: "XMR",
         from_qty: "0.017999",
-        to_address: "",
+        to_address: &std::env::var("ENVADDRESS").unwrap(),
         swap_type: "float",
     };
 
@@ -34,6 +40,11 @@ fn start() {
         + "&type="
         + my_order.swap_type;
 
+    let mut auth = Auth {
+        api_key: std::env::var("ENVTAPIKEY").unwrap(),
+        secret_key: std::env::var("ENVSECRET").unwrap(),
+    };
+
     println!("{query_convert_mac}");
     let mut mac = HmacSha256::new_from_slice(b"").unwrap();
     mac.update(query_convert_mac.as_bytes());
@@ -44,11 +55,14 @@ fn start() {
         write!(&mut x_api_sign, "{bytes:02x}").unwrap();
     }
 
+    let deneme = Auth::x_api_sign(&mut auth);
+    println!("{deneme}");
+
     println!("{}", &x_api_sign);
 
     let resp = ureq::post("https://fixedfloat.com/api/v1/createOrder")
-        .set("X-API-KEY", "")
-        .set("X-API-SIGN", &x_api_sign)
+        .set("X-API-KEY", &auth.api_key)
+        .set("X-API-SIGN", &deneme)
         .send_form(&[
             ("fromCurrency", my_order.from_currency),
             ("toCurrency", my_order.to_currency),
@@ -79,5 +93,6 @@ fn start() {
     println!("{image}");
 }
 fn main() {
+    dotenv().ok();
     start()
 }
