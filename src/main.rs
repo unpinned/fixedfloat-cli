@@ -2,7 +2,7 @@ mod api;
 mod auth;
 
 use crate::{
-    api::{CreateOrder, CREATE_ORDER, GET_CURRENCIES},
+    api::{CreateOrder, GetOrder, GetPrice, CREATE_ORDER, GET_CURRENCIES, GET_ORDER, GET_PRICE},
     auth::Auth,
 };
 use dotenvy::dotenv;
@@ -17,10 +17,8 @@ fn auth() -> Auth {
     }
 }
 
-fn create_order() {
+fn create_order() -> (String, String) {
     let mut auth = auth();
-    println!("{auth:#?}");
-
     let my_order = CreateOrder {
         from_currency: "BTCLN".to_owned(),
         to_currency: "XMR".to_owned(),
@@ -56,7 +54,10 @@ fn create_order() {
         .into_string();
 
     let v: Value = serde_json::from_str(resp.unwrap().as_str()).unwrap();
-    println!("{}", v["data"]["id"].green());
+    let id = v["data"]["id"].to_string();
+    let token = v["data"]["token"].to_string();
+    println!("Your ID is: {}", v["data"]["id"].green());
+    println!("Your TOKEN is: {}", v["data"]["token"].green());
     println!("{}", v["data"]["from"]["address"].blue());
 
     let invoice = v["data"]["from"]["address"].to_string();
@@ -73,6 +74,7 @@ fn create_order() {
         .light_color(unicode::Dense1x2::Dark)
         .build();
     println!("{image}");
+    (id, token)
 }
 
 fn get_currencies() {
@@ -88,8 +90,65 @@ fn get_currencies() {
 
     println!("{resp}");
 }
+
+fn get_price() {
+    let mut auth = auth();
+    let my_order = GetPrice {
+        from_currency: "BTCLN".to_owned(),
+        to_currency: "XMR".to_owned(),
+        from_qty: 0.00044565,
+        to_qty: 0.0025,
+        conversation_type: "float".to_owned(),
+    };
+
+    let sign_query = "fromCurrency=".to_string()
+        + &my_order.from_currency
+        + "&toCurrency="
+        + &my_order.to_currency
+        + "&fromQty="
+        + &my_order.from_qty.to_string()
+        + "&type="
+        + &my_order.conversation_type;
+
+    let resp = ureq::post(GET_PRICE)
+        .set("X-API-KEY", &auth.api_key)
+        .set("X-API-SIGN", &Auth::x_api_sign(&mut auth, sign_query))
+        .send_form(&[
+            ("fromCurrency", &my_order.from_currency),
+            ("toCurrency", &my_order.to_currency),
+            ("fromQty", &my_order.from_qty.to_string()),
+            ("type", &my_order.conversation_type),
+        ])
+        .unwrap()
+        .into_string();
+
+    let v: Value = serde_json::from_str(resp.unwrap().as_str()).unwrap();
+
+    println!("{}", v.red());
+}
+
+fn get_order(id: String, token: String) {
+    let mut auth = auth();
+    let my_order = GetOrder { id, token };
+
+    let sign_query = "id=".to_string() + &my_order.id + "&token=" + &my_order.token;
+
+    let resp = ureq::post(GET_ORDER)
+        .set("X-API-KEY", &auth.api_key)
+        .set("X-API-SIGN", &Auth::x_api_sign(&mut auth, sign_query))
+        .send_form(&[("id", &my_order.id), ("token", &my_order.token)])
+        .unwrap()
+        .into_string();
+
+    let v: Value = serde_json::from_str(resp.unwrap().as_str()).unwrap();
+
+    println!("{}", v.blue());
+}
+
 fn main() {
     dotenv().ok();
-    create_order();
-    get_currencies()
+    let (id, token) = create_order();
+    get_currencies();
+    get_price();
+    get_order(id, token)
 }
