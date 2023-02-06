@@ -20,13 +20,13 @@ fn auth() -> Auth {
 fn create_order() -> (String, String) {
     let mut auth = auth();
     let my_order = CreateOrder {
-        from_currency: "BTCLN".to_owned(),
-        to_currency: "XMR".to_owned(),
-        from_qty: 0.00044565,
+        from_currency: std::env::var("ENVFROMCURRENCRY").unwrap(),
+        to_currency: std::env::var("ENVTOCURRENCRY").unwrap(),
+        from_qty: std::env::var("ENVFROMQTY").unwrap().parse::<f64>().unwrap(),
         to_qty: 0.0025,
         to_address: std::env::var("ENVADDRESS").unwrap(),
         extra: "54132".to_string(),
-        conversation_type: "float".to_owned(),
+        conversation_type: std::env::var("ENVCONVERSATIONTYPE").unwrap(),
     };
 
     let sign_query = "fromCurrency=".to_string()
@@ -58,6 +58,18 @@ fn create_order() -> (String, String) {
     let token = v["data"]["token"].to_string();
     println!("Your ID is: {}", v["data"]["id"].green());
     println!("Your TOKEN is: {}", v["data"]["token"].green());
+    println!(
+        "You will receive to this address: {}",
+        std::env::var("ENVADDRESS").unwrap().green()
+    );
+    println!(
+        "Pay this amount to below address: {}",
+        std::env::var("ENVFROMQTY")
+            .unwrap()
+            .parse::<f64>()
+            .unwrap()
+            .green()
+    );
     println!("{}", v["data"]["from"]["address"].blue());
 
     let invoice = v["data"]["from"]["address"].to_string();
@@ -94,11 +106,11 @@ fn get_currencies() {
 fn get_price() {
     let mut auth = auth();
     let my_order = GetPrice {
-        from_currency: "BTCLN".to_owned(),
-        to_currency: "XMR".to_owned(),
-        from_qty: 0.00044565,
+        from_currency: std::env::var("ENVFROMCURRENCRY").unwrap(),
+        to_currency: std::env::var("ENVTOCURRENCRY").unwrap(),
+        from_qty: std::env::var("ENVFROMQTY").unwrap().parse::<f64>().unwrap(),
         to_qty: 0.0025,
-        conversation_type: "float".to_owned(),
+        conversation_type: std::env::var("ENVCONVERSATIONTYPE").unwrap(),
     };
 
     let sign_query = "fromCurrency=".to_string()
