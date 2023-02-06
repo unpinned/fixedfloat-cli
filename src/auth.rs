@@ -2,6 +2,7 @@ use hmac::{Hmac, Mac};
 use sha2::Sha256;
 use std::fmt::Write;
 
+#[derive(Debug)]
 pub struct Auth {
     pub api_key: String,
     pub secret_key: String,

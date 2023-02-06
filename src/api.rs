@@ -1,10 +1,10 @@
 #![allow(dead_code)]
 
-const GET_CURRENCIES: &str = "https://fixedfloat.com/api/v1/getCurrencies";
-const GET_PRICE: &str = "https://fixedfloat.com/api/v1/getPrice";
-const GET_ORDER: &str = "https://fixedfloat.com/api/v1/getOrder";
-const SET_EMERGENCY: &str = "https://fixedfloat.com/api/v1/setEmergency";
-const CREATE_ORDER: &str = "https://fixedfloat.com/api/v1/createOrder";
+pub const GET_CURRENCIES: &str = "https://fixedfloat.com/api/v1/getCurrencies";
+pub const GET_PRICE: &str = "https://fixedfloat.com/api/v1/getPrice";
+pub const GET_ORDER: &str = "https://fixedfloat.com/api/v1/getOrder";
+pub const SET_EMERGENCY: &str = "https://fixedfloat.com/api/v1/setEmergency";
+pub const CREATE_ORDER: &str = "https://fixedfloat.com/api/v1/createOrder";
 
 struct GetCurrencies {
     currency: String,

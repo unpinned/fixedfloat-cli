@@ -1,27 +1,36 @@
 mod api;
 mod auth;
 
-use crate::{api::CreateOrder, auth::Auth};
+use crate::{
+    api::{CreateOrder, CREATE_ORDER, GET_CURRENCIES},
+    auth::Auth,
+};
 use dotenvy::dotenv;
 use owo_colors::OwoColorize;
 use qrcode::{render::unicode, QrCode};
 use serde_json::Value;
 
-fn start() {
+fn auth() -> Auth {
+    Auth {
+        api_key: std::env::var("ENVTAPIKEY").unwrap(),
+        secret_key: std::env::var("ENVSECRET").unwrap(),
+    }
+}
+
+fn create_order() {
+    let mut auth = auth();
+    println!("{auth:#?}");
+
     let my_order = CreateOrder {
         from_currency: "BTCLN".to_owned(),
         to_currency: "XMR".to_owned(),
-        from_qty: 0.017999,
+        from_qty: 0.00044565,
         to_qty: 0.0025,
         to_address: std::env::var("ENVADDRESS").unwrap(),
         extra: "54132".to_string(),
         conversation_type: "float".to_owned(),
     };
 
-    let mut auth = Auth {
-        api_key: std::env::var("ENVTAPIKEY").unwrap(),
-        secret_key: std::env::var("ENVSECRET").unwrap(),
-    };
     let sign_query = "fromCurrency=".to_string()
         + &my_order.from_currency
         + "&toCurrency="
@@ -32,7 +41,8 @@ fn start() {
         + &my_order.to_address
         + "&type="
         + &my_order.conversation_type;
-    let resp = ureq::post("https://fixedfloat.com/api/v1/createOrder")
+
+    let resp = ureq::post(CREATE_ORDER)
         .set("X-API-KEY", &auth.api_key)
         .set("X-API-SIGN", &Auth::x_api_sign(&mut auth, sign_query))
         .send_form(&[
@@ -64,7 +74,22 @@ fn start() {
         .build();
     println!("{image}");
 }
+
+fn get_currencies() {
+    let mut auth = auth();
+
+    let resp = ureq::get(GET_CURRENCIES)
+        .set("X-API-KEY", &auth.api_key)
+        .set("X-API-SIGN", &Auth::x_api_sign(&mut auth, "".to_owned()))
+        .call()
+        .unwrap()
+        .into_string()
+        .unwrap();
+
+    println!("{resp}");
+}
 fn main() {
     dotenv().ok();
-    start()
+    create_order();
+    get_currencies()
 }
