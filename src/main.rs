@@ -157,10 +157,22 @@ fn get_order(id: String, token: String) {
     println!("{}", v.blue());
 }
 
+fn backup_link(id: String) {
+    let backup_link = "https://fixedfloat.com/order/";
+    let backup_id = id.trim_matches('"');
+    let combine = backup_link.to_owned() + backup_id;
+    println!("Your backup link is: {}", combine.blue());
+    println!(
+        "The link will ask for your receive address: {}",
+        std::env::var("ENVADDRESS").unwrap().blue()
+    );
+}
+
 fn main() {
     dotenv().ok();
     let (id, token) = create_order();
     get_currencies();
     get_price();
-    get_order(id, token)
+    get_order(id.clone(), token);
+    backup_link(id)
 }
