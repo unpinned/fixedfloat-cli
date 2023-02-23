@@ -3,7 +3,7 @@
 pub const GET_CURRENCIES: &str = "https://fixedfloat.com/api/v1/getCurrencies";
 pub const GET_PRICE: &str = "https://fixedfloat.com/api/v1/getPrice";
 pub const GET_ORDER: &str = "https://fixedfloat.com/api/v1/getOrder";
-pub const CREATE_ORDER: &str = "https://fixedfloat.com/api/v1/createOrder";
+pub const CREATE_ORDER: &str = "https://ff.io/api/v2/create";
 pub const SET_EMERGENCY: &str = "https://fixedfloat.com/api/v1/setEmergency";
 
 pub struct GetCurrencies {
@@ -38,6 +38,7 @@ pub struct CreateOrder {
     pub to_address: String,
     pub extra: String,
     pub conversation_type: String,
+    pub direction: String,
 }
 
 struct SetEmergency {

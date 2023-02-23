@@ -27,33 +27,31 @@ fn create_order() -> (String, String) {
         to_address: std::env::var("ENVADDRESS").unwrap(),
         extra: "54132".to_string(),
         conversation_type: std::env::var("ENVCONVERSATIONTYPE").unwrap(),
+        direction: std::env::var("ENVDIRECTION").unwrap(),
     };
 
-    let sign_query = "fromCurrency=".to_string()
-        + &my_order.from_currency
-        + "&toCurrency="
-        + &my_order.to_currency
-        + "&fromQty="
-        + &my_order.from_qty.to_string()
-        + "&toAddress="
-        + &my_order.to_address
-        + "&type="
-        + &my_order.conversation_type;
+    let jsondata = ureq::json!({
+      "fromCcy": &my_order.from_currency,
+      "toCcy": &my_order.to_currency,
+      "amount": &my_order.from_qty.to_string(),
+      "toAddress": &my_order.to_address,
+      "type": &my_order.conversation_type,
+      "direction": &my_order.direction,
+    });
 
     let resp = ureq::post(CREATE_ORDER)
+        .set("Content-Type", "application/json; charset=UTF-8")
         .set("X-API-KEY", &auth.api_key)
-        .set("X-API-SIGN", &Auth::x_api_sign(&mut auth, sign_query))
-        .send_form(&[
-            ("fromCurrency", &my_order.from_currency),
-            ("toCurrency", &my_order.to_currency),
-            ("fromQty", &my_order.from_qty.to_string()),
-            ("toAddress", &my_order.to_address),
-            ("type", &my_order.conversation_type),
-        ])
+        .set(
+            "X-API-SIGN",
+            &Auth::x_api_sign(&mut auth, jsondata.to_string()),
+        )
+        .send_json(jsondata)
         .unwrap()
         .into_string();
 
     let v: Value = serde_json::from_str(resp.unwrap().as_str()).unwrap();
+    println!("{}", v);
     let id = v["data"]["id"].to_string();
     let token = v["data"]["token"].to_string();
     println!("Your ID is: {}", v["data"]["id"].green());
